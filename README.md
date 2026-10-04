@@ -2,8 +2,8 @@
 
 > Craft any TCP/UDP exchange — client *or* listener — as a declarative template or a live console session. One engine, one model, two front doors.
 
-![status](https://img.shields.io/badge/status-v0%20prototype-orange)
-![python](https://img.shields.io/badge/python-3.9%2B-blue)
+![status](https://img.shields.io/badge/status-v0-blue)
+![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![tests](https://img.shields.io/badge/tests-284%20passing-brightgreen)
 ![templates](https://img.shields.io/badge/templates-109-blueviolet)
 ![license](https://img.shields.io/badge/license-see%20LICENSE-lightgrey)
@@ -65,7 +65,7 @@ Or drop into the console:
 crafty
 ```
 
-Python 3.9+. No external services required to run the engine.
+Python 3.10+. No external services required to run the engine.
 
 ---
 
@@ -360,7 +360,7 @@ crafty export --list-targets
 | `pyz` | a Python 3 | yes (any Python host) | one `.pyz` file |
 | `exe` | nothing | no — current OS/arch only (PyInstaller) | one native file |
 
-The bundle downloads a prebuilt, relocatable CPython for the chosen target from [python-build-standalone](https://github.com/indygreg/python-build-standalone) (cached after first use) and packages it with the engine + your template. There's **no cross-compilation** — crafty only repackages an already-compiled interpreter — so a Windows host can assemble a Linux/arm64 bundle with no emulation or container. POSIX targets ship `.tar.gz` so execute bits and symlinks survive.
+The bundle downloads a prebuilt, relocatable CPython for the chosen target from [python-build-standalone](https://github.com/astral-sh/python-build-standalone) (cached after first use) and packages it with the engine + your template. There's **no cross-compilation** — crafty only repackages an already-compiled interpreter — so a Windows host can assemble a Linux/arm64 bundle with no emulation or container. POSIX targets ship `.tar.gz` so execute bits and symlinks survive.
 
 > **The honest limit:** a true single native file for arbitrary OS/arch from one host isn't achievable for Python — that's the deferred Go-port story. The bundle is the pragmatic answer: native, zero-install, any target; it's a zip, not one `.exe`.
 

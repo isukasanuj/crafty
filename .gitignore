@@ -1,11 +1,13 @@
 # crafty
+# NOTE: build-output dirs are anchored with a leading slash so they only match at
+# the repo root and can never swallow a package directory (e.g. crafty/loot/).
 .venv/
 __pycache__/
 *.pyc
 *.egg-info/
-build/
-dist/
-loot/
+/build/
+/dist/
+/loot/
 *.pyz
 *.spec
 

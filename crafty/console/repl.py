@@ -23,15 +23,17 @@ from .. import __version__
 from ..banner import banner, explain
 from ..core import engine
 from ..core.session import Session, SessionRegistry
+from ..paths import primary_library_dir, resolve_template
 from ..schema import Template, TemplateError
 from . import commands as C
 
 
 class Console(cmd.Cmd):
     intro = ""
-    def __init__(self, templates_dir: str = "templates", stdout=None):
+    def __init__(self, templates_dir: Optional[str] = None, stdout=None):
         super().__init__(stdout=stdout)
-        self.templates_dir = templates_dir
+        # Default to a local ./templates in a repo checkout, else the bundled library.
+        self.templates_dir = templates_dir or str(primary_library_dir())
         self.registry = SessionRegistry()
         self.active: Optional[Template] = None
         self.active_name: Optional[str] = None
@@ -66,14 +68,15 @@ class Console(cmd.Cmd):
 
     # ------------------------------------------------------------------ #
     def _resolve_template_path(self, name: str) -> Optional[Path]:
-        cands = [
-            Path(name), Path(name + ".yaml"),
-            Path(self.templates_dir) / name, Path(self.templates_dir) / f"{name}.yaml",
-            Path(self.templates_dir) / "client" / f"{name}.yaml",
-            Path(self.templates_dir) / "listener" / f"{name}.yaml",
-        ]
-        for c in cands:
-            if c.exists() and c.is_file():
+        # Shared resolver: literal path, then by name across env/cwd/user/bundled.
+        found = resolve_template(name)
+        if found is not None:
+            return found
+        # also honour the console's own active library dir explicitly
+        for c in (Path(self.templates_dir) / f"{name}.yaml",
+                  Path(self.templates_dir) / "client" / f"{name}.yaml",
+                  Path(self.templates_dir) / "listener" / f"{name}.yaml"):
+            if c.is_file():
                 return c
         return None
 

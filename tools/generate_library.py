@@ -22,8 +22,8 @@ from pathlib import Path
 import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
-CLIENT = ROOT / "templates" / "client"
-LISTENER = ROOT / "templates" / "listener"
+CLIENT = ROOT / "crafty" / "templates" / "client"   # shipped inside the package
+LISTENER = ROOT / "crafty" / "templates" / "listener"
 
 # ids that already exist as hand-curated templates - do not overwrite
 CURATED = {

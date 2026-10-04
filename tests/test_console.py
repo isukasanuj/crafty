@@ -14,7 +14,7 @@ def free_udp_port():
 
 
 def make_console():
-    return Console(templates_dir="templates", stdout=io.StringIO())
+    return Console(stdout=io.StringIO())  # default resolves to the bundled library
 
 
 def out(con):

@@ -20,7 +20,20 @@ from .banner import banner, explain
 from .core import engine
 from .core.session import Session
 from .loot import EventSink
+from .paths import resolve_template
 from .schema import Template, TemplateError
+
+
+def _load(arg: str) -> Template:
+    """Resolve a template by path or bare name, then parse+validate it."""
+    path = resolve_template(arg)
+    if path is None:
+        raise TemplateError(
+            f"template not found: {arg!r} (looked for a file, and by name in "
+            "$CRAFTY_TEMPLATES, ./templates, ~/.crafty/templates, and the bundled "
+            "library — try `crafty search` or a full path)"
+        )
+    return Template.from_file(str(path))
 
 
 def _apply_cli_params(raw: dict, args) -> dict:
@@ -52,7 +65,7 @@ def _apply_cli_params(raw: dict, args) -> dict:
 def cmd_run(args) -> int:
     print(banner(__version__), file=sys.stderr)
     try:
-        t = Template.from_file(args.template)
+        t = _load(args.template)
     except (TemplateError, FileNotFoundError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2
@@ -92,27 +105,30 @@ def cmd_run(args) -> int:
 
 
 def cmd_lint(args) -> int:
+    path = resolve_template(args.template)
+    if path is None:
+        print(f"{args.template}: not found")
+        return 2
     try:
-        data = Path(args.template).read_text(encoding="utf-8")
         import yaml
-        raw = yaml.safe_load(data)
-        t = Template(raw=raw, path=args.template)
+        raw = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        t = Template(raw=raw, path=str(path))
     except Exception as exc:
-        print(f"{args.template}: cannot parse: {exc}")
+        print(f"{path}: cannot parse: {exc}")
         return 2
     errs = t.lint()
     if errs:
-        print(f"{args.template}: INVALID")
+        print(f"{path}: INVALID")
         for e in errs:
             print(f"  - {e}")
         return 1
-    print(f"{args.template}: OK  ({t.transport}/{t.role})")
+    print(f"{path}: OK  ({t.transport}/{t.role})")
     return 0
 
 
 def cmd_explain(args) -> int:
     try:
-        t = Template.from_file(args.template)
+        t = _load(args.template)
     except TemplateError as exc:
         print(f"error: {exc}")
         return 2
@@ -130,10 +146,10 @@ def cmd_export(args) -> int:
         return 0
 
     if not args.template:
-        print("error: a template path is required (or use --list-targets)", file=sys.stderr)
+        print("error: a template path or name is required (or use --list-targets)", file=sys.stderr)
         return 2
     try:
-        t = Template.from_file(args.template)
+        t = _load(args.template)
     except (TemplateError, FileNotFoundError, OSError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

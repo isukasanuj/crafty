@@ -29,6 +29,10 @@ crafty = "crafty.cli:main"
 where = ["."]
 include = ["crafty*"]
 
+[tool.setuptools.package-data]
+# Ship the template library inside the wheel so installs (pip/pipx) have it.
+crafty = ["templates/*.yaml", "templates/client/*.yaml", "templates/listener/*.yaml"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"

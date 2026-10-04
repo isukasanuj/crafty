@@ -17,7 +17,7 @@ from crafty.schema import Template
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-TEMPLATES = sorted((REPO / "templates").rglob("*.yaml"))
+TEMPLATES = sorted((REPO / "crafty" / "templates").rglob("*.yaml"))
 DUMMY = {"RHOST": "127.0.0.1", "RPORT": "9", "USERS": "administrator", "QUERY": "example.com",
          "USER": "root", "FILENAME": "test", "PAYLOAD": "PING", "BODY": "crafty",
          "ATTACKER_IP": "127.0.0.1", "IFACE": "0.0.0.0", "LPORT": "0"}
@@ -83,7 +83,7 @@ def _serve_once(port, on_connect):
 def test_live_banner_grab_template():
     port = _free_port()
     _serve_once(port, lambda c: c.sendall(b"SSH-2.0-OpenSSH_9.6\r\n"))
-    t = Template.from_file(str(REPO / "templates/client/banner-ssh.yaml"))
+    t = Template.from_file(str(REPO / "crafty/templates/client/banner-ssh.yaml"))
     # drop preflight so the single-shot server isn't consumed by the open-check
     t.raw.get("tempo", {}).pop("preflight", None)
     s = Session(template=t, params={"RHOST": "127.0.0.1", "RPORT": str(port)})
@@ -98,7 +98,7 @@ def test_live_line_probe_template():
         c.recv(64)               # consume PING
         c.sendall(b"+PONG\r\n")
     _serve_once(port, handler)
-    t = Template.from_file(str(REPO / "templates/client/probe-redis-ping.yaml"))
+    t = Template.from_file(str(REPO / "crafty/templates/client/probe-redis-ping.yaml"))
     t.raw.get("tempo", {}).pop("preflight", None)
     s = Session(template=t, params={"RHOST": "127.0.0.1", "RPORT": str(port)})
     engine.run(s)

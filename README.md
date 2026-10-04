@@ -6,7 +6,7 @@
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![tests](https://img.shields.io/badge/tests-284%20passing-brightgreen)
 ![templates](https://img.shields.io/badge/templates-109-blueviolet)
-![license](https://img.shields.io/badge/license-see%20LICENSE-lightgrey)
+![license](https://img.shields.io/badge/license-GPLv3-blue)
 
 **crafty** is a protocol-crafting engine for authorized network security testing. You describe a byte-level exchange over TCP or UDP — the socket setup, the send/recv state machine, the matchers and extractors — and crafty runs it, either from a shareable YAML template or interactively from a session-based console.
 
@@ -452,10 +452,10 @@ crafty is offensive tooling intended **solely for lawful use**: your own lab, or
 
 - An "authorized testing only" banner prints on console start and on `run`.
 - Safe defaults: listeners are **selective** (not blanket); clients are conservative on rate and confirmed-open ports; poisoner templates default to `analyze`.
-- See [`LICENSE`](LICENSE) for the lawful-use and no-warranty notice.
+- Licensed under **GPLv3** — see [`LICENSE`](LICENSE). The authorized-use and no-warranty statement is in [`NOTICE`](NOTICE).
 
 ---
 
 ## License & credits
 
-See [`LICENSE`](LICENSE). Built by [@isukasanuj](https://github.com/isukasanuj) · [github.com/isukasanuj/crafty](https://github.com/isukasanuj/crafty)
+Licensed under **GPLv3** — see [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). Built by [@isukasanuj](https://github.com/isukasanuj) · [github.com/isukasanuj/crafty](https://github.com/isukasanuj/crafty)

@@ -1,0 +1,23 @@
+crafty — authorized-use notice
+==============================
+
+Copyright (C) 2026 isukasanuj and the crafty authors.
+
+crafty is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+either version 3 of the License, or (at your option) any later version. See the
+LICENSE file for the full text.
+
+AUTHORIZED TESTING ONLY
+-----------------------
+crafty is offensive security tooling. The GPLv3 grants you broad rights to use,
+study, modify, and share the code — but it does NOT grant you permission to
+attack anyone. Use crafty solely against systems you own or are explicitly
+authorized in writing to test. Poisoning, spraying, and rogue-listener templates
+put real attacks on real wires.
+
+crafty gives you dials to match an engagement's noise budget; it never claims to
+make your activity invisible. Completed TCP handshakes are logged, and poisoning
+puts wrong answers on the wire that canaries can catch.
+
+This is an ethical and usage statement, not an additional license restriction.

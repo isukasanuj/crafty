@@ -8,8 +8,13 @@ version = "0.1.0"
 description = "Declarative + interactive engine for arbitrary TCP/UDP protocol exchanges, client or listener."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { text = "See LICENSE / authorized-use notice" }
-authors = [{ name = "crafty" }]
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "isukasanuj" }]
+classifiers = [
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+]
 dependencies = [
     "PyYAML>=6.0",
 ]

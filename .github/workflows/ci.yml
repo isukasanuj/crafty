@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  # Fast feedback: run the full test suite against an editable install.
+  tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install --upgrade pip
+      - run: pip install -e ".[dev]"
+      - run: pytest -q
+
+  # The gate that catches clean-install bugs (missing package data, git-ignored
+  # modules, unshipped templates): build a wheel, install it into a FRESH venv,
+  # and exercise the installed package from a directory that is NOT the repo.
+  clean-install:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install --upgrade pip build
+      - name: Build wheel
+        run: python -m build --wheel
+      - name: Install the wheel into a clean venv
+        run: |
+          python -m venv /tmp/ce
+          /tmp/ce/bin/pip install --upgrade pip
+          /tmp/ce/bin/pip install dist/*.whl
+      - name: Exercise the installed package from a non-repo directory
+        working-directory: /tmp
+        run: |
+          /tmp/ce/bin/python "$GITHUB_WORKSPACE/tools/clean_install_check.py"
+          /tmp/ce/bin/crafty --version
+          /tmp/ce/bin/crafty lint banner-ssh
+          /tmp/ce/bin/crafty explain banner-ssh
+          /tmp/ce/bin/crafty run banner-ssh --mode dry-run -t 10.255.255.1

@@ -31,6 +31,16 @@ def test_library_is_nonempty():
     assert len(TEMPLATES) >= 100
 
 
+def test_bundled_library_is_shipped_and_resolvable():
+    # Uses the installed package's view, so this fails if templates aren't shipped
+    # as package data (the clean-install bug) even when the source tree has them.
+    from crafty.paths import bundled_templates_dir, resolve_template
+    shipped = list(bundled_templates_dir().rglob("*.yaml"))
+    assert len(shipped) >= 100, f"only {len(shipped)} templates shipped in the package"
+    for name in ("banner-ssh", "selective-udp-responder", "length-prefixed-probe"):
+        assert resolve_template(name) is not None
+
+
 @pytest.mark.parametrize("path", TEMPLATES, ids=_ids())
 def test_template_lints(path):
     raw = yaml.safe_load(path.read_text(encoding="utf-8"))

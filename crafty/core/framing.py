@@ -116,16 +116,22 @@ class FrameReader:
     def read_frame(self) -> bytes | None:
         """Return exactly one framed message, or None on clean EOF with no data."""
         if self.f.type == "fixed":
-            if not self._fill_to(self.f.size):
-                if not self._buf:
-                    return None
-                # short read at EOF: return what we have (partial final record)
-                out = bytes(self._buf)
-                self._buf.clear()
+            # "read up to size bytes": return as soon as any data is available, do
+            # NOT block trying to fill the whole size. A banner (e.g. an SSH line)
+            # is far shorter than a typical read size, and the server then waits for
+            # us — filling to size would always time out. This matches `read: N`
+            # meaning "up to N", as in Nuclei.
+            if self._buf:
+                out = bytes(self._buf[: self.f.size])
+                del self._buf[: self.f.size]
                 return out
-            out = bytes(self._buf[: self.f.size])
-            del self._buf[: self.f.size]
-            return out
+            chunk = self._recv(self.f.size)
+            if not chunk:
+                return None
+            if len(chunk) > self.f.size:          # defensive; recv won't exceed size
+                self._buf += chunk[self.f.size:]
+                return chunk[: self.f.size]
+            return chunk
 
         if self.f.type == "length-prefix":
             header_len = self.f.offset + self.f.size

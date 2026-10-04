@@ -74,6 +74,48 @@ def test_client_flow_matches_length_prefixed_response():
 # --------------------------------------------------------------------------- #
 # Listener with selectivity
 # --------------------------------------------------------------------------- #
+def test_banner_grab_short_banner_then_idle_server():
+    # Reproduces the scanme.nmap.org:22 case: server sends a short banner then goes
+    # idle (waits for the client). A recv-first `read: N` grab must return promptly.
+    port = free_port()
+    hold, ready = threading.Event(), threading.Event()
+
+    def server():
+        srv = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        srv.bind(("127.0.0.1", port)); srv.listen(1); srv.settimeout(3)
+        ready.set()
+        try:
+            conn, _ = srv.accept()
+        except socket.timeout:
+            srv.close(); return
+        with conn:
+            conn.sendall(b"SSH-2.0-OpenSSH_9.6\r\n")
+            hold.wait(3)      # stay connected, send nothing more
+        srv.close()
+
+    threading.Thread(target=server, daemon=True).start()
+    ready.wait(2)
+
+    t = Template.from_dict({
+        "id": "banner", "transport": "tcp", "role": "client",
+        "target": f"127.0.0.1:{port}", "socket": {"timeout": "4s"},
+        "flow": [{"recv": {"read": 1024},
+                  "matchers": [{"type": "word", "part": "data", "words": ["SSH-"]}],
+                  "on_match": {"extract": {"banner": "{{data}}"}}}],
+    })
+    s = Session(template=t)
+    start = time.monotonic()
+    engine.run(s)
+    elapsed = time.monotonic() - start
+    hold.set()
+
+    assert s.state == "done"
+    assert s.stats.get("matched") == 1
+    assert s.variables.get("banner", b"").startswith(b"SSH-")
+    assert elapsed < 3.5          # returned on banner, did NOT wait out the timeout
+
+
 def test_udp_listener_selective_response():
     port = free_port(socket.SOCK_DGRAM)
     t = Template.from_dict({
@@ -121,6 +163,37 @@ def test_udp_listener_selective_response():
 
     assert s.stats.get("responses") == 1
     assert s.stats.get("observed") == 3
+
+
+def test_udp_client_send_recv_live():
+    # Live coverage of the UDP client path (send datagram, recv reply, match).
+    port = free_port(socket.SOCK_DGRAM)
+    srv = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    srv.bind(("127.0.0.1", port)); srv.settimeout(3)
+    ready = threading.Event()
+
+    def server():
+        ready.set()
+        try:
+            data, peer = srv.recvfrom(4096)
+        except socket.timeout:
+            srv.close(); return
+        srv.sendto(b"PONG:" + data, peer)
+        srv.close()
+
+    threading.Thread(target=server, daemon=True).start()
+    ready.wait(2)
+
+    t = Template.from_dict({
+        "id": "udp-probe", "transport": "udp", "role": "client",
+        "target": f"127.0.0.1:{port}", "socket": {"timeout": "3s"},
+        "flow": [{"send": {"bytes": "PING"}, "recv": {"read": 1024},
+                  "matchers": [{"type": "word", "part": "data", "words": ["PONG:PING"]}]}],
+    })
+    s = Session(template=t)
+    engine.run(s)
+    assert s.state == "done"
+    assert s.stats.get("matched") == 1
 
 
 def test_analyze_mode_never_responds():

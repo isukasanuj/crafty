@@ -82,6 +82,20 @@ def test_delimiter_exclude():
     assert r.read_frame() == b"b"
 
 
+def test_fixed_reads_up_to_size_without_blocking_to_fill():
+    # Regression: `read: N` must return a short banner immediately, not wait to
+    # fill N bytes (which would time out against a server that then goes idle).
+    calls = {"n": 0}
+    def recv(n):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return b"SSH-2.0-OpenSSH_9.6\r\n"
+        raise AssertionError("fixed read must not call recv again to fill size")
+    r = FrameReader(recv, Framing.from_spec({"read": 1024}))
+    assert r.read_frame() == b"SSH-2.0-OpenSSH_9.6\r\n"
+    assert calls["n"] == 1
+
+
 def test_frame_too_large():
     r = FrameReader(feeder(b"\xFF\xFFxxxx"), Framing.from_spec({
         "type": "length-prefix", "size": 2, "max_message": 16,

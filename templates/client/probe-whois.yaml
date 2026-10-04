@@ -1,0 +1,39 @@
+# WHOIS
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-whois
+info:
+  name: WHOIS
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - whois
+  description: 'Send-then-read probe: WHOIS.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|43}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{QUERY}}\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Domain
+    - NOT FOUND
+    - No match
+  on_match:
+    log: 'WHOIS: match'
+    capture:
+      to: loot/probe-whois.txt
+      part: data
+defaults:
+  QUERY: example.com

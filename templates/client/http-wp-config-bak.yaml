@@ -1,0 +1,42 @@
+# WordPress wp-config backup
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-wp-config-bak
+info:
+  name: WordPress wp-config backup
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  - wordpress
+  - secrets
+  description: 'HTTP probe: WordPress wp-config backup (GET /wp-config.php.bak).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /wp-config.php.bak HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - DB_PASSWORD
+    - DB_NAME
+  on_match:
+    log: 'WordPress wp-config backup: {{RHOST}} matched'
+    capture:
+      to: loot/http-wp-config-bak.txt
+      value: '{{RHOST}}:{{RPORT}}'

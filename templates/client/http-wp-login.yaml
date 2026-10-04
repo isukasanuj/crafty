@@ -1,0 +1,41 @@
+# WordPress login
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-wp-login
+info:
+  name: WordPress login
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - cms
+  - wordpress
+  description: 'HTTP probe: WordPress login (GET /wp-login.php).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /wp-login.php HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - WordPress
+    - user_login
+  on_match:
+    log: 'WordPress login: {{RHOST}} matched'
+    capture:
+      to: loot/http-wp-login.txt
+      value: '{{RHOST}}:{{RPORT}}'

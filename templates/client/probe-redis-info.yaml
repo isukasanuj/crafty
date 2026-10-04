@@ -1,0 +1,37 @@
+# Redis INFO
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-redis-info
+info:
+  name: Redis INFO
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - redis
+  - db
+  description: 'Send-then-read probe: Redis INFO.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|6379}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: INFO\r\n
+  recv:
+    read: 4096
+  matchers:
+  - type: word
+    part: data
+    words:
+    - redis_version
+    - NOAUTH
+  on_match:
+    log: 'Redis INFO: match'
+    capture:
+      to: loot/probe-redis-info.txt
+      part: data

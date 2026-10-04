@@ -1,0 +1,28 @@
+# Repeat loop demo
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: demo-loop-repeat
+info:
+  name: Repeat loop demo
+  author: crafty
+  severity: info
+  tags:
+  - demo
+  - control-flow
+  description: Fixed bounded repetition with a delay.
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|9999}}'
+flow:
+- loop:
+    repeat: 3
+    delay: 1s
+    do:
+    - send:
+        bytes: ping {{randstr:4}}
+      recv:
+        read: 256
+      matchers:
+      - type: len
+        part: data
+        min: 1

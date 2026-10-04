@@ -1,0 +1,40 @@
+# phpinfo()
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-phpinfo
+info:
+  name: phpinfo()
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  description: 'HTTP probe: phpinfo() (GET /phpinfo.php).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /phpinfo.php HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - phpinfo()
+    - PHP Version
+  on_match:
+    log: 'phpinfo(): {{RHOST}} matched'
+    capture:
+      to: loot/http-phpinfo.txt
+      value: '{{RHOST}}:{{RPORT}}'

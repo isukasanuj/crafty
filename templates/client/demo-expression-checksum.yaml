@@ -1,0 +1,26 @@
+# Expression checksum demo
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: demo-expression-checksum
+info:
+  name: Expression checksum demo
+  author: crafty
+  severity: info
+  tags:
+  - demo
+  - expression
+  description: Compute a CRC32 over the body with a bounded expression - no script step.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9999}}'
+flow:
+- send:
+    bytes: '{{= concat(bytes(BODY), u32be(crc32(BODY)))}}'
+  recv:
+    read: 256
+  matchers:
+  - type: len
+    part: data
+    min: 1
+defaults:
+  BODY: crafty

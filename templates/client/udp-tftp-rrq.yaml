@@ -1,0 +1,35 @@
+# TFTP read request
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-tftp-rrq
+info:
+  name: TFTP read request
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - tftp
+  description: 'UDP binary probe: TFTP read request.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|69}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{hex:0001}}{{FILENAME}}\x00octet\x00'
+  recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'TFTP read request: response from {{RHOST}}'
+    capture:
+      to: loot/udp-tftp-rrq.txt
+      part: data
+defaults:
+  FILENAME: test

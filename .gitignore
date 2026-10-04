@@ -1,0 +1,13 @@
+# crafty
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+loot/
+*.pyz
+*.spec
+
+# runtime cache for exported bundles (downloaded standalone CPythons)
+.crafty/

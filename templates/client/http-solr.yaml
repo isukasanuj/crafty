@@ -1,0 +1,41 @@
+# Apache Solr
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-solr
+info:
+  name: Apache Solr
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - db
+  - search
+  description: 'HTTP probe: Apache Solr (GET /solr/).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8983}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /solr/ HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Solr
+    - solr
+  on_match:
+    log: 'Apache Solr: {{RHOST}} matched'
+    capture:
+      to: loot/http-solr.txt
+      value: '{{RHOST}}:{{RPORT}}'

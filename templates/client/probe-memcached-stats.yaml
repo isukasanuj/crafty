@@ -1,0 +1,36 @@
+# Memcached stats
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-memcached-stats
+info:
+  name: Memcached stats
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - memcached
+  - db
+  description: 'Send-then-read probe: Memcached stats.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|11211}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: stats\r\n
+  recv:
+    read: 4096
+  matchers:
+  - type: word
+    part: data
+    words:
+    - STAT
+  on_match:
+    log: 'Memcached stats: match'
+    capture:
+      to: loot/probe-memcached-stats.txt
+      part: data

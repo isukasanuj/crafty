@@ -1,0 +1,36 @@
+# SMTP submission
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-smtp-submission
+info:
+  name: SMTP submission
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - smtp
+  - mail
+  description: Read-first banner grab for SMTP submission.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|587}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '220'
+  on_match:
+    log: SMTP submission banner captured
+    capture:
+      to: loot/banner-smtp-submission.txt
+      part: data

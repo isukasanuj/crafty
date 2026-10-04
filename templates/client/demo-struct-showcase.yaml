@@ -1,0 +1,41 @@
+# Struct showcase
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: demo-struct-showcase
+info:
+  name: Struct showcase
+  author: crafty
+  severity: info
+  tags:
+  - demo
+  - struct
+  - binary
+  description: Define a message layout once; the length prefix writes itself on pack.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9999}}'
+socket:
+  timeout: 5s
+structs:
+  Msg:
+  - name: magic
+    type: bytes
+    len: 4
+  - name: length
+    type: u16be
+    value: len(body)
+  - name: body
+    type: bytes
+    len: length
+flow:
+- send:
+    bytes: '{{struct:Msg(magic=b''CRFT'', body=b''hello'')}}'
+  recv:
+    type: length-prefix
+    offset: 4
+    size: 2
+    counts: body
+  matchers:
+  - type: len
+    part: data
+    min: 1

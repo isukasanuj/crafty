@@ -1,0 +1,39 @@
+# Jupyter
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-jupyter
+info:
+  name: Jupyter
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  - notebook
+  description: 'HTTP probe: Jupyter (GET /api).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8888}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /api HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - version
+  on_match:
+    log: 'Jupyter: {{RHOST}} matched'
+    capture:
+      to: loot/http-jupyter.txt
+      value: '{{RHOST}}:{{RPORT}}'

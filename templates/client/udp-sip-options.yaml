@@ -1,0 +1,35 @@
+# SIP OPTIONS
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: Minimal SIP request; some servers require more complete headers.
+# AUTHORIZED TESTING ONLY.
+id: udp-sip-options
+info:
+  name: SIP OPTIONS
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - sip
+  - voip
+  description: 'UDP text probe: SIP OPTIONS.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|5060}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: 'OPTIONS sip:{{RHOST}} SIP/2.0\r\nVia: SIP/2.0/UDP crafty\r\nCSeq: 1 OPTIONS\r\n\r\n'
+  recv:
+    read: 2048
+  matchers:
+  - type: word
+    part: data
+    words:
+    - SIP/2.0
+  on_match:
+    log: 'SIP OPTIONS: response from {{RHOST}}'
+    capture:
+      to: loot/udp-sip-options.txt
+      part: data

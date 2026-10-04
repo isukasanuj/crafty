@@ -1,0 +1,41 @@
+# Kubernetes API
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: https-kubernetes-api
+info:
+  name: Kubernetes API
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - https
+  - web
+  - k8s
+  description: 'HTTP probe: Kubernetes API (GET /version).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|6443}}'
+socket:
+  timeout: 6s
+  tls: true
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /version HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - gitVersion
+    - major
+  on_match:
+    log: 'Kubernetes API: {{RHOST}} matched'
+    capture:
+      to: loot/https-kubernetes-api.txt
+      value: '{{RHOST}}:{{RPORT}}'

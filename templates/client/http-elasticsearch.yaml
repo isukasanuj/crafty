@@ -1,0 +1,40 @@
+# Elasticsearch
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-elasticsearch
+info:
+  name: Elasticsearch
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - db
+  - elastic
+  description: 'HTTP probe: Elasticsearch (GET /).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9200}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET / HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - cluster_name
+    - lucene_version
+  on_match:
+    log: 'Elasticsearch: {{RHOST}} matched'
+    capture:
+      to: loot/http-elasticsearch.txt
+      value: '{{RHOST}}:{{RPORT}}'

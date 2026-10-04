@@ -1,0 +1,35 @@
+# MySQL greeting
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-mysql
+info:
+  name: MySQL greeting
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - mysql
+  - db
+  description: Read-first banner grab for MySQL greeting.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|3306}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 5
+  on_match:
+    log: MySQL greeting banner captured
+    capture:
+      to: loot/banner-mysql.txt
+      part: data

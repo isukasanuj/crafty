@@ -1,0 +1,40 @@
+# Grafana
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-grafana
+info:
+  name: Grafana
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - monitoring
+  description: 'HTTP probe: Grafana (GET /login).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|3000}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /login HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Grafana
+    - grafana
+  on_match:
+    log: 'Grafana: {{RHOST}} matched'
+    capture:
+      to: loot/http-grafana.txt
+      value: '{{RHOST}}:{{RPORT}}'

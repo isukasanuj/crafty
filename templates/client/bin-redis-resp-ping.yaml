@@ -1,0 +1,40 @@
+# Redis RESP PING
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: bin-redis-resp-ping
+info:
+  name: Redis RESP PING
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - redis
+  - db
+  description: 'TCP binary probe: Redis RESP PING.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|6379}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '*1\r\n$4\r\nPING\r\n'
+  recv:
+    type: delimiter
+    delimiter: \r\n
+  matchers:
+  - type: word
+    part: data
+    words:
+    - +PONG
+    - NOAUTH
+    - -ERR
+  on_match:
+    log: 'Redis RESP PING: response from {{RHOST}}'
+    capture:
+      to: loot/bin-redis-resp-ping.txt
+      part: data

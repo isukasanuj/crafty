@@ -1,0 +1,36 @@
+# SMTP
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-smtp
+info:
+  name: SMTP
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - smtp
+  - mail
+  description: Read-first banner grab for SMTP.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|25}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '220'
+  on_match:
+    log: SMTP banner captured
+    capture:
+      to: loot/banner-smtp.txt
+      part: data

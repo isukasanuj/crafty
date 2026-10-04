@@ -1,0 +1,36 @@
+# ZooKeeper ruok
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-zookeeper-ruok
+info:
+  name: ZooKeeper ruok
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - zookeeper
+  description: 'Send-then-read probe: ZooKeeper ruok.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|2181}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: ruok
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - imok
+  on_match:
+    log: 'ZooKeeper ruok: match'
+    capture:
+      to: loot/probe-zookeeper-ruok.txt
+      part: data

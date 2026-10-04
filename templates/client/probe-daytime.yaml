@@ -1,0 +1,36 @@
+# Daytime
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-daytime
+info:
+  name: Daytime
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - daytime
+  description: 'Send-then-read probe: Daytime.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|13}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: \r\n
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - ':'
+  on_match:
+    log: 'Daytime: match'
+    capture:
+      to: loot/probe-daytime.txt
+      part: data

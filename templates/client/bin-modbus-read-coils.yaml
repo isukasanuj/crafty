@@ -1,0 +1,42 @@
+# Modbus read coils
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: MBAP transaction id fixed; framing reads the response by its length field.
+# AUTHORIZED TESTING ONLY.
+id: bin-modbus-read-coils
+info:
+  name: Modbus read coils
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - modbus
+  - ics
+  - scada
+  description: 'TCP binary probe: Modbus read coils.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|502}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{hex:000100000006010100000001}}'
+  recv:
+    type: length-prefix
+    offset: 4
+    size: 2
+    endian: be
+    counts: body
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'Modbus read coils: response from {{RHOST}}'
+    capture:
+      to: loot/bin-modbus-read-coils.txt
+      part: data

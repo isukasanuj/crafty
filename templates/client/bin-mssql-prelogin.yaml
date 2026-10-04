@@ -1,0 +1,37 @@
+# MSSQL pre-login
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: TDS pre-login packet; validate against a live SQL Server.
+# AUTHORIZED TESTING ONLY.
+id: bin-mssql-prelogin
+info:
+  name: MSSQL pre-login
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - mssql
+  - db
+  description: 'TCP binary probe: MSSQL pre-login.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|1433}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{hex:12010034000000000000001500060100206301000026000104000a00010001010002000003000b00010004ff08000201}}'
+  recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'MSSQL pre-login: response from {{RHOST}}'
+    capture:
+      to: loot/bin-mssql-prelogin.txt
+      part: data

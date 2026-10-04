@@ -1,0 +1,37 @@
+# Memcached version
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-memcached-version
+info:
+  name: Memcached version
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - memcached
+  - db
+  description: 'Send-then-read probe: Memcached version.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|11211}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: version\r\n
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - VERSION
+  on_match:
+    log: 'Memcached version: match'
+    capture:
+      to: loot/probe-memcached-version.txt
+      part: data

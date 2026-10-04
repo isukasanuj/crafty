@@ -1,0 +1,38 @@
+# HTTPS root
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: https-root
+info:
+  name: HTTPS root
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - https
+  - web
+  description: 'HTTP probe: HTTPS root (GET /).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|443}}'
+socket:
+  timeout: 6s
+  tls: true
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET / HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - HTTP/
+  on_match:
+    log: 'HTTPS root: {{RHOST}} matched'
+    capture:
+      to: loot/https-root.txt
+      value: '{{RHOST}}:{{RPORT}}'

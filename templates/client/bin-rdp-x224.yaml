@@ -1,0 +1,35 @@
+# RDP X.224 connection request
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: bin-rdp-x224
+info:
+  name: RDP X.224 connection request
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - rdp
+  description: 'TCP binary probe: RDP X.224 connection request.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|3389}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{hex:030000130ee00000000000010008000300000000}}'
+  recv:
+    read: 64
+  matchers:
+  - type: binary
+    part: data
+    value: '0300'
+  on_match:
+    log: 'RDP X.224 connection request: response from {{RHOST}}'
+    capture:
+      to: loot/bin-rdp-x224.txt
+      part: data

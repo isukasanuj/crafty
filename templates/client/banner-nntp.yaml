@@ -1,0 +1,36 @@
+# NNTP
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-nntp
+info:
+  name: NNTP
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - nntp
+  description: Read-first banner grab for NNTP.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|119}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '200'
+    - '201'
+  on_match:
+    log: NNTP banner captured
+    capture:
+      to: loot/banner-nntp.txt
+      part: data

@@ -1,0 +1,43 @@
+id: length-prefixed-probe
+info:
+  name: Length-prefixed binary probe
+  author: crafty
+  severity: info
+  tags: [client, tcp, binary, struct, framing, demo]
+  description: >
+    Showcases the two moat features together: a bidirectional STRUCT defines the
+    message layout once (the 2-byte length writes itself on pack), and FRAMING
+    teaches the recv loop to read exactly one length-prefixed reply. This shape
+    (u16 length + body) covers a large swath of real proprietary TCP services,
+    declaratively - something Nuclei's network type cannot express.
+
+transport: tcp
+role: client
+target: "{{RHOST}}:{{RPORT|9999}}"
+socket:
+  timeout: 5s
+
+# Define once; used to pack the request below, and (by the framing) to read the reply.
+structs:
+  Msg:
+    - { name: length,  type: u16be, value: "len(payload)" }   # computed on pack
+    - { name: payload, type: bytes, len: "length" }           # length ref on parse
+
+tempo:
+  preflight: true
+
+flow:
+  - send:
+      bytes: "{{struct:Msg(payload=b'PING')}}"
+    recv:
+      type: length-prefix
+      size: 2
+      endian: be
+      counts: body
+    matchers:
+      - { type: len, part: data, min: 3 }
+    on_match:
+      log: "got a {{= len(data)}}-byte framed reply"
+      extract:
+        body: "{{data[2:]}}"
+      capture: { to: "loot/probe-replies.txt", value: "{{RHOST}}: {{body}}" }

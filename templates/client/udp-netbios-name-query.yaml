@@ -1,0 +1,34 @@
+# NetBIOS name query (*)
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-netbios-name-query
+info:
+  name: NetBIOS name query (*)
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - netbios
+  - smb
+  description: 'UDP binary probe: NetBIOS name query (*).'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|137}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{randbytes:2}}\x00\x10\x00\x01\x00\x00\x00\x00\x00\x00{{hex:20434b41414141414141414141414141414141414141414141414141414141410000210001}}'
+  recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'NetBIOS name query (*): response from {{RHOST}}'
+    capture:
+      to: loot/udp-netbios-name-query.txt
+      part: data

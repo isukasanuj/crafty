@@ -1,0 +1,36 @@
+# Echo service
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-echo
+info:
+  name: Echo service
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - echo
+  description: 'Send-then-read probe: Echo service.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|7}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: crafty-echo\r\n
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - crafty-echo
+  on_match:
+    log: 'Echo service: match'
+    capture:
+      to: loot/probe-echo.txt
+      part: data

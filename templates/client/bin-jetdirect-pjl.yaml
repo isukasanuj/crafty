@@ -1,0 +1,36 @@
+# HP JetDirect PJL info
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: bin-jetdirect-pjl
+info:
+  name: HP JetDirect PJL info
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - printer
+  - jetdirect
+  description: 'TCP binary probe: HP JetDirect PJL info.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9100}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{= concat(hex2b(''1b25''), b''-12345X@PJL INFO ID\r\n'', hex2b(''1b25''), b''-12345X'')}}'
+  recv:
+    read: 2048
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'HP JetDirect PJL info: response from {{RHOST}}'
+    capture:
+      to: loot/bin-jetdirect-pjl.txt
+      part: data

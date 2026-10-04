@@ -1,0 +1,34 @@
+# IRC
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-irc
+info:
+  name: IRC
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - irc
+  description: Read-first banner grab for IRC.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|6667}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: IRC banner captured
+    capture:
+      to: loot/banner-irc.txt
+      part: data

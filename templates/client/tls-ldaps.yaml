@@ -1,0 +1,37 @@
+# LDAPS reachability
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: LDAP does not send a banner; this confirms a TLS handshake succeeds.
+# AUTHORIZED TESTING ONLY.
+id: tls-ldaps
+info:
+  name: LDAPS reachability
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - ldap
+  - tls
+  description: Read-first banner grab for LDAPS reachability.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|636}}'
+socket:
+  timeout: 5s
+  tls: true
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 0
+  on_match:
+    log: LDAPS reachability banner captured
+    capture:
+      to: loot/tls-ldaps.txt
+      part: data

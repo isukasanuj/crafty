@@ -1,0 +1,34 @@
+# DNS version.bind (CHAOS TXT)
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-dns-version-bind
+info:
+  name: DNS version.bind (CHAOS TXT)
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - bind
+  - dns
+  description: 'UDP binary probe: DNS version.bind (CHAOS TXT).'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|53}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{randbytes:2}}\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00{{hex:0776657273696f6e0462696e6400}}\x00\x10\x00\x03'
+  recv:
+    read: 512
+  matchers:
+  - type: len
+    part: data
+    min: 12
+  on_match:
+    log: 'DNS version.bind (CHAOS TXT): response from {{RHOST}}'
+    capture:
+      to: loot/udp-dns-version-bind.txt
+      part: data

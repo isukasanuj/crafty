@@ -1,0 +1,42 @@
+# SonarQube status
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-sonarqube
+info:
+  name: SonarQube status
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - ci
+  - sonarqube
+  description: 'HTTP probe: SonarQube status (GET /api/system/status).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9000}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /api/system/status HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - status
+    - UP
+    - version
+  on_match:
+    log: 'SonarQube status: {{RHOST}} matched'
+    capture:
+      to: loot/http-sonarqube.txt
+      value: '{{RHOST}}:{{RPORT}}'

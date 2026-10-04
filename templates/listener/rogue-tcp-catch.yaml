@@ -1,0 +1,30 @@
+# Rogue TCP catch-all
+# Tier: T1
+# Note: Set LPORT. Accepts a connection, logs the first message, closes.
+# AUTHORIZED TESTING ONLY.
+id: rogue-tcp-catch
+info:
+  name: Rogue TCP catch-all
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - tcp
+  - catch
+  - honeypot
+  description: Rogue TCP catch-all.
+transport: tcp
+role: listener
+mode: analyze
+socket:
+  bind: 0.0.0.0:{{LPORT|0}}
+  options:
+  - SO_REUSEADDR
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/rogue-tcp-catch.txt
+    value: '{{peer}} -> {{query}}'

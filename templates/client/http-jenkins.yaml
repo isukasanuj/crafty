@@ -1,0 +1,39 @@
+# Jenkins
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-jenkins
+info:
+  name: Jenkins
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - ci
+  description: 'HTTP probe: Jenkins (GET /).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8080}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET / HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Jenkins
+    - X-Jenkins
+  on_match:
+    log: 'Jenkins: {{RHOST}} matched'
+    capture:
+      to: loot/http-jenkins.txt
+      value: '{{RHOST}}:{{RPORT}}'

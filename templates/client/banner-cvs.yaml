@@ -1,0 +1,34 @@
+# CVS pserver
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-cvs
+info:
+  name: CVS pserver
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - cvs
+  description: Read-first banner grab for CVS pserver.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|2401}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: CVS pserver banner captured
+    capture:
+      to: loot/banner-cvs.txt
+      part: data

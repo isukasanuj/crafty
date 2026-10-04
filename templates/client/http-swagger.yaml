@@ -1,0 +1,40 @@
+# Swagger UI
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-swagger
+info:
+  name: Swagger UI
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - api
+  description: 'HTTP probe: Swagger UI (GET /swagger-ui.html).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /swagger-ui.html HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Swagger
+    - swagger-ui
+  on_match:
+    log: 'Swagger UI: {{RHOST}} matched'
+    capture:
+      to: loot/http-swagger.txt
+      value: '{{RHOST}}:{{RPORT}}'

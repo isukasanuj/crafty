@@ -1,0 +1,36 @@
+# IMAP
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-imap
+info:
+  name: IMAP
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - imap
+  - mail
+  description: Read-first banner grab for IMAP.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|143}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '* OK'
+  on_match:
+    log: IMAP banner captured
+    capture:
+      to: loot/banner-imap.txt
+      part: data

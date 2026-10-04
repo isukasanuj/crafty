@@ -1,0 +1,38 @@
+# SMTPS
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-smtps
+info:
+  name: SMTPS
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - smtp
+  - tls
+  - mail
+  description: Read-first banner grab for SMTPS.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|465}}'
+socket:
+  timeout: 5s
+  tls: true
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '220'
+  on_match:
+    log: SMTPS banner captured
+    capture:
+      to: loot/banner-smtps.txt
+      part: data

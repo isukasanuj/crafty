@@ -1,0 +1,26 @@
+id: tcp-banner
+info:
+  name: TCP banner grab
+  author: crafty
+  severity: info
+  tags: [client, tcp, recon, demo]
+  description: >
+    Read-first exchange: connect, read whatever the service volunteers, keep it.
+    The simplest useful client template - and a good first read for the schema.
+
+transport: tcp
+role: client
+target: "{{RHOST}}:{{RPORT|22}}"
+socket:
+  timeout: 5s
+
+tempo:
+  preflight: true          # only spend the flow on a confirmed-open port
+
+flow:
+  - recv: { read: 1024 }
+    matchers:
+      - { type: len, part: data, min: 1 }
+    on_match:
+      log: "banner from {{RHOST}} captured"
+      capture: { to: "loot/banners.txt", part: data }

@@ -1,0 +1,37 @@
+# SSDP M-SEARCH
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: udp-ssdp-msearch
+info:
+  name: SSDP M-SEARCH
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - ssdp
+  - upnp
+  description: 'UDP text probe: SSDP M-SEARCH.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|1900}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: 'M-SEARCH * HTTP/1.1\r\nHOST: 239.255.255.250:1900\r\nMAN: "ssdp:discover"\r\nMX: 1\r\nST:
+      ssdp:all\r\n\r\n'
+  recv:
+    read: 2048
+  matchers:
+  - type: word
+    part: data
+    words:
+    - HTTP/1.1 200
+    - LOCATION
+    - USN
+  on_match:
+    log: 'SSDP M-SEARCH: response from {{RHOST}}'
+    capture:
+      to: loot/udp-ssdp-msearch.txt
+      part: data

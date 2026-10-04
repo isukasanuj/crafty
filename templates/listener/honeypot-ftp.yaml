@@ -1,0 +1,31 @@
+# FTP honeypot banner
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: honeypot-ftp
+info:
+  name: FTP honeypot banner
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - tcp
+  - honeypot
+  - ftp
+  description: FTP honeypot banner.
+transport: tcp
+role: listener
+mode: active
+socket:
+  bind: 0.0.0.0:{{LPORT|21}}
+  options:
+  - SO_REUSEADDR
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/honeypot-ftp.txt
+    value: '{{peer}} -> {{query}}'
+  respond:
+    bytes: 220 crafty FTP ready\r\n

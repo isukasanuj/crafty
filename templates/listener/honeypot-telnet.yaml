@@ -1,0 +1,31 @@
+# Telnet honeypot banner
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: honeypot-telnet
+info:
+  name: Telnet honeypot banner
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - tcp
+  - honeypot
+  - telnet
+  description: Telnet honeypot banner.
+transport: tcp
+role: listener
+mode: active
+socket:
+  bind: 0.0.0.0:{{LPORT|23}}
+  options:
+  - SO_REUSEADDR
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/honeypot-telnet.txt
+    value: '{{peer}} -> {{query}}'
+  respond:
+    bytes: 'login: '

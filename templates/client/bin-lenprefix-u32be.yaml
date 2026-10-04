@@ -1,0 +1,41 @@
+# Generic u32be length-prefixed probe
+# Tier: T1
+# Note: Set RPORT and PAYLOAD; the u32be length prefix is computed from PAYLOAD.
+# AUTHORIZED TESTING ONLY.
+id: bin-lenprefix-u32be
+info:
+  name: Generic u32be length-prefixed probe
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - generic
+  description: 'TCP binary probe: Generic u32be length-prefixed probe.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|0}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{= concat(u32be(len(PAYLOAD)), bytes(PAYLOAD))}}'
+  recv:
+    type: length-prefix
+    size: 4
+    endian: be
+    counts: body
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'Generic u32be length-prefixed probe: response from {{RHOST}}'
+    capture:
+      to: loot/bin-lenprefix-u32be.txt
+      part: data
+defaults:
+  PAYLOAD: PING

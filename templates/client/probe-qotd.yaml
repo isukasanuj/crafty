@@ -1,0 +1,36 @@
+# Quote of the day
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-qotd
+info:
+  name: Quote of the day
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - qotd
+  description: 'Send-then-read probe: Quote of the day.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|17}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: \r\n
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - ' '
+  on_match:
+    log: 'Quote of the day: match'
+    capture:
+      to: loot/probe-qotd.txt
+      part: data

@@ -1,0 +1,40 @@
+# Consul
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-consul
+info:
+  name: Consul
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - infra
+  description: 'HTTP probe: Consul (GET /v1/agent/self).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8500}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /v1/agent/self HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Config
+    - Member
+  on_match:
+    log: 'Consul: {{RHOST}} matched'
+    capture:
+      to: loot/http-consul.txt
+      value: '{{RHOST}}:{{RPORT}}'

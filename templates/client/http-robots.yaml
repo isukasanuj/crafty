@@ -1,0 +1,39 @@
+# robots.txt
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-robots
+info:
+  name: robots.txt
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  description: 'HTTP probe: robots.txt (GET /robots.txt).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /robots.txt HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - User-agent
+    - Disallow
+  on_match:
+    log: 'robots.txt: {{RHOST}} matched'
+    capture:
+      to: loot/http-robots.txt
+      value: '{{RHOST}}:{{RPORT}}'

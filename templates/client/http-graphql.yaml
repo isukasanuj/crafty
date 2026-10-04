@@ -1,0 +1,41 @@
+# GraphQL endpoint
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-graphql
+info:
+  name: GraphQL endpoint
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - api
+  description: 'HTTP probe: GraphQL endpoint (GET /graphql).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /graphql HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - GraphQL
+    - __schema
+    - errors
+  on_match:
+    log: 'GraphQL endpoint: {{RHOST}} matched'
+    capture:
+      to: loot/http-graphql.txt
+      value: '{{RHOST}}:{{RPORT}}'

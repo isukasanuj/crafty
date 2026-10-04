@@ -1,0 +1,33 @@
+# NTP client request
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-ntp-client
+info:
+  name: NTP client request
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - ntp
+  description: 'UDP binary probe: NTP client request.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|123}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{= concat(hex2b(''1b''), b''\x00''*47)}}'
+  recv:
+    read: 96
+  matchers:
+  - type: len
+    part: data
+    min: 48
+  on_match:
+    log: 'NTP client request: response from {{RHOST}}'
+    capture:
+      to: loot/udp-ntp-client.txt
+      part: data

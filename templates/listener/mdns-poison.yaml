@@ -1,0 +1,41 @@
+# mDNS poisoner (DRAFT)
+# Tier: T3  (T3 = draft; needs live validation; defaults to safe analyze mode)
+# Note: Draft. mDNS answer crafting needs validation against a live resolver; defaults to analyze.
+# AUTHORIZED TESTING ONLY.
+id: mdns-poison
+info:
+  name: mDNS poisoner (DRAFT)
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - udp
+  - mdns
+  - multicast
+  - poisoning
+  description: mDNS poisoner (DRAFT).
+transport: udp
+role: listener
+mode: analyze
+socket:
+  bind: 0.0.0.0:{{LPORT|5353}}
+  options:
+  - SO_REUSEADDR
+  multicast:
+    group: 224.0.0.251
+    interface: '{{IFACE|0.0.0.0}}'
+selectivity:
+  respond_to:
+  - '*local*'
+  ignore:
+  - '*canary*'
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/mdns-poison.txt
+    value: '{{peer}} -> {{query}}'
+  respond:
+    bytes: '{{= data}}'

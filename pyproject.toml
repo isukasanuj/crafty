@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "crafty"
+version = "0.1.0"
+description = "Declarative + interactive engine for arbitrary TCP/UDP protocol exchanges, client or listener."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "See LICENSE / authorized-use notice" }
+authors = [{ name = "crafty" }]
+dependencies = [
+    "PyYAML>=6.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+crafty = "crafty.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["crafty*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

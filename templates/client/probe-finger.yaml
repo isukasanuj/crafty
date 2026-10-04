@@ -1,0 +1,39 @@
+# Finger
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-finger
+info:
+  name: Finger
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - finger
+  description: 'Send-then-read probe: Finger.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|79}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{USER}}\r\n'
+  recv:
+    read: 4096
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Login
+    - No such user
+    - ':'
+  on_match:
+    log: 'Finger: match'
+    capture:
+      to: loot/probe-finger.txt
+      part: data
+defaults:
+  USER: root

@@ -1,0 +1,39 @@
+# MinIO
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-minio
+info:
+  name: MinIO
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - storage
+  description: 'HTTP probe: MinIO (GET /minio/health/live).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9000}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /minio/health/live HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - HTTP/
+  on_match:
+    log: 'MinIO: {{RHOST}} matched'
+    capture:
+      to: loot/http-minio.txt
+      value: '{{RHOST}}:{{RPORT}}'

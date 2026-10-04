@@ -1,0 +1,35 @@
+id: selective-udp-responder
+info:
+  name: Selective UDP responder (quiet-by-config)
+  author: crafty
+  severity: high
+  tags: [listener, udp, selectivity, poisoning, demo]
+  description: >
+    The listener half Nuclei cannot do, showing crafty's operational win over
+    Responder's BLANKET answering: it replies only to names matching respond_to,
+    skips canary/honey queries, caps answers per host, and cools down between
+    answers. This generic text-datagram responder is the tested skeleton that the
+    protocol-specific poisoners (LLMNR/mDNS/NBT-NS) specialise. Authorized use only.
+
+transport: udp
+role: listener
+mode: active                 # set to 'analyze' to observe without ever responding
+
+socket:
+  bind: "0.0.0.0:{{LPORT|1234}}"
+  options: [SO_REUSEADDR]
+
+selectivity:
+  respond_to: ["*.corp.local"]
+  ignore: ["*-canary*", "wpad*"]     # dodge common honey-queries
+  max_responses_per_host: 3
+  cooldown: 30s
+
+on_receive:
+  extract:
+    - { name: query, type: dsl, expression: "str(strip(data))" }
+  respond:
+    bytes: "{{= concat(b'ANSWER ', bytes(query))}}"
+  capture:
+    to: "loot/udp-responses.txt"
+    value: "{{query}} <- {{peer}}"

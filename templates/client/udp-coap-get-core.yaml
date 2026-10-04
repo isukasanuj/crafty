@@ -1,0 +1,34 @@
+# CoAP GET /.well-known/core
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-coap-get-core
+info:
+  name: CoAP GET /.well-known/core
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - coap
+  - iot
+  description: 'UDP binary probe: CoAP GET /.well-known/core.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|5683}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{hex:40015d1fbb2e77656c6c2d6b6e6f776e04636f7265}}'
+  recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'CoAP GET /.well-known/core: response from {{RHOST}}'
+    capture:
+      to: loot/udp-coap-get-core.txt
+      part: data

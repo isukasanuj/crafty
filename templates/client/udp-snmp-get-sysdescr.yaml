@@ -1,0 +1,34 @@
+# SNMPv1 GET sysDescr (public)
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: Standard SNMPv1 GET for 1.3.6.1.2.1.1.1.0, community 'public'. Validate against a live agent.
+# AUTHORIZED TESTING ONLY.
+id: udp-snmp-get-sysdescr
+info:
+  name: SNMPv1 GET sysDescr (public)
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - snmp
+  description: 'UDP binary probe: SNMPv1 GET sysDescr (public).'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|161}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{hex:302902010004067075626c6963a01c020400000001020100020100300e300c06082b060102010101000500}}'
+  recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: 'SNMPv1 GET sysDescr (public): response from {{RHOST}}'
+    capture:
+      to: loot/udp-snmp-get-sysdescr.txt
+      part: data

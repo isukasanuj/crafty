@@ -1,0 +1,39 @@
+# Prometheus
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-prometheus
+info:
+  name: Prometheus
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - monitoring
+  description: 'HTTP probe: Prometheus (GET /graph).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9090}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /graph HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Prometheus
+  on_match:
+    log: 'Prometheus: {{RHOST}} matched'
+    capture:
+      to: loot/http-prometheus.txt
+      value: '{{RHOST}}:{{RPORT}}'

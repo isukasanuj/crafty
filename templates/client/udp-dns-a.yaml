@@ -1,0 +1,34 @@
+# DNS A query (example.com)
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: QNAME is fixed to example.com; a different name needs re-encoding (or the script step).
+# AUTHORIZED TESTING ONLY.
+id: udp-dns-a
+info:
+  name: DNS A query (example.com)
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - dns
+  description: 'UDP binary probe: DNS A query (example.com).'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|53}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{randbytes:2}}\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00{{hex:076578616d706c6503636f6d00}}\x00\x01\x00\x01'
+  recv:
+    read: 512
+  matchers:
+  - type: len
+    part: data
+    min: 12
+  on_match:
+    log: 'DNS A query (example.com): response from {{RHOST}}'
+    capture:
+      to: loot/udp-dns-a.txt
+      part: data

@@ -1,0 +1,39 @@
+# NBT-NS poisoner (DRAFT)
+# Tier: T3  (T3 = draft; needs live validation; defaults to safe analyze mode)
+# Note: Draft. NBT-NS name-registration/response crafting needs live validation; defaults to analyze.
+# AUTHORIZED TESTING ONLY.
+id: nbtns-poison
+info:
+  name: NBT-NS poisoner (DRAFT)
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - udp
+  - netbios
+  - smb
+  - poisoning
+  description: NBT-NS poisoner (DRAFT).
+transport: udp
+role: listener
+mode: analyze
+socket:
+  bind: 0.0.0.0:{{LPORT|137}}
+  options:
+  - SO_REUSEADDR
+selectivity:
+  respond_to:
+  - '*'
+  ignore:
+  - '*canary*'
+  - '*wpad*'
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/nbtns-poison.txt
+    value: '{{peer}} -> {{query}}'
+  respond:
+    bytes: '{{= data}}'

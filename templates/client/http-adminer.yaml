@@ -1,0 +1,40 @@
+# Adminer
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-adminer
+info:
+  name: Adminer
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  - db
+  description: 'HTTP probe: Adminer (GET /adminer.php).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /adminer.php HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Adminer
+  on_match:
+    log: 'Adminer: {{RHOST}} matched'
+    capture:
+      to: loot/http-adminer.txt
+      value: '{{RHOST}}:{{RPORT}}'

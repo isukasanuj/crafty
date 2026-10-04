@@ -1,0 +1,28 @@
+crafty - usage and license notice
+=================================
+
+Copyright (c) 2026 the crafty authors.
+
+AUTHORIZED TESTING ONLY
+-----------------------
+crafty is offensive security tooling. It is intended SOLELY for lawful use:
+your own lab, or assessments where you hold explicit written authorization and a
+defined scope. Its poisoning, spraying, and rogue-listener capabilities put real
+attacks on real wires. Using it against systems you do not own or are not
+explicitly authorized in writing to test may be illegal and is not supported.
+
+crafty gives you dials to match an engagement's noise budget. It never claims to
+make your activity invisible: completed TCP handshakes are logged, and poisoning
+puts wrong answers on the wire that canaries can catch.
+
+NO WARRANTY
+-----------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR ITS USE.
+
+A permissive open-source license (e.g. MIT/Apache-2.0) may be added for the code
+itself; until then, treat this as "all rights reserved" for redistribution and
+"authorized lawful use only" for operation.

@@ -1,0 +1,36 @@
+# SMTP EHLO
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-smtp-ehlo
+info:
+  name: SMTP EHLO
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - smtp
+  - mail
+  description: 'Send-then-read probe: SMTP EHLO.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|25}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: EHLO crafty.test\r\n
+  recv:
+    read: 4096
+  matchers:
+  - type: word
+    part: data
+    words:
+    - '250'
+  on_match:
+    log: 'SMTP EHLO: match'
+    capture:
+      to: loot/probe-smtp-ehlo.txt
+      part: data

@@ -1,0 +1,35 @@
+# SSH
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: banner-ssh
+info:
+  name: SSH
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - ssh
+  description: Read-first banner grab for SSH.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|22}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - SSH-
+  on_match:
+    log: SSH banner captured
+    capture:
+      to: loot/banner-ssh.txt
+      part: data

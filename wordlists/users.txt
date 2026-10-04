@@ -1,0 +1,10 @@
+administrator
+admin
+root
+guest
+service
+backup
+jsmith
+mwilson
+test
+operator

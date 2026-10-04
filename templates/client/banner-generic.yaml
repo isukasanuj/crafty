@@ -1,0 +1,35 @@
+# Generic banner grab
+# Tier: T1
+# Note: Set RPORT; works for any service that sends a banner first.
+# AUTHORIZED TESTING ONLY.
+id: banner-generic
+info:
+  name: Generic banner grab
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - recon
+  - banner
+  - generic
+  description: Read-first banner grab for Generic banner grab.
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|0}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- recv:
+    read: 1024
+  matchers:
+  - type: len
+    part: data
+    min: 1
+  on_match:
+    log: Generic banner grab banner captured
+    capture:
+      to: loot/banner-generic.txt
+      part: data

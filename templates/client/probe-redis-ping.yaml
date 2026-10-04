@@ -1,0 +1,39 @@
+# Redis PING
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: probe-redis-ping
+info:
+  name: Redis PING
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - redis
+  - db
+  description: 'Send-then-read probe: Redis PING.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|6379}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: PING\r\n
+  recv:
+    type: delimiter
+    delimiter: "\r\n"
+  matchers:
+  - type: word
+    part: data
+    words:
+    - +PONG
+    - NOAUTH
+    - -ERR
+  on_match:
+    log: 'Redis PING: match'
+    capture:
+      to: loot/probe-redis-ping.txt
+      part: data

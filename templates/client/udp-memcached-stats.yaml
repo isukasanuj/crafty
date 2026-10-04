@@ -1,0 +1,34 @@
+# Memcached UDP stats
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: udp-memcached-stats
+info:
+  name: Memcached UDP stats
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - udp
+  - binary
+  - memcached
+  description: 'UDP binary probe: Memcached UDP stats.'
+transport: udp
+role: client
+target: '{{RHOST}}:{{RPORT|11211}}'
+socket:
+  timeout: 4s
+flow:
+- send:
+    bytes: '{{hex:0000000000010000}}stats\r\n'
+  recv:
+    read: 2048
+  matchers:
+  - type: word
+    part: data
+    words:
+    - STAT
+  on_match:
+    log: 'Memcached UDP stats: response from {{RHOST}}'
+    capture:
+      to: loot/udp-memcached-stats.txt
+      part: data

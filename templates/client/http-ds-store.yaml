@@ -1,0 +1,39 @@
+# Exposed .DS_Store
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-ds-store
+info:
+  name: Exposed .DS_Store
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  description: 'HTTP probe: Exposed .DS_Store (GET /.DS_Store).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /.DS_Store HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Bud1
+  on_match:
+    log: 'Exposed .DS_Store: {{RHOST}} matched'
+    capture:
+      to: loot/http-ds-store.txt
+      value: '{{RHOST}}:{{RPORT}}'

@@ -1,0 +1,41 @@
+# Tomcat manager
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-tomcat-manager
+info:
+  name: Tomcat manager
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  - tomcat
+  description: 'HTTP probe: Tomcat manager (GET /manager/html).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8080}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /manager/html HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Tomcat
+    - '401 '
+  on_match:
+    log: 'Tomcat manager: {{RHOST}} matched'
+    capture:
+      to: loot/http-tomcat-manager.txt
+      value: '{{RHOST}}:{{RPORT}}'

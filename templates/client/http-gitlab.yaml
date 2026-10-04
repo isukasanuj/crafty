@@ -1,0 +1,39 @@
+# GitLab sign-in
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-gitlab
+info:
+  name: GitLab sign-in
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - devops
+  description: 'HTTP probe: GitLab sign-in (GET /users/sign_in).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /users/sign_in HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - GitLab
+  on_match:
+    log: 'GitLab sign-in: {{RHOST}} matched'
+    capture:
+      to: loot/http-gitlab.txt
+      value: '{{RHOST}}:{{RPORT}}'

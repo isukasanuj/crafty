@@ -1,0 +1,40 @@
+# Apache server-status
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-server-status
+info:
+  name: Apache server-status
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - exposure
+  description: 'HTTP probe: Apache server-status (GET /server-status).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET /server-status HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - Apache Status
+    - Server Version
+  on_match:
+    log: 'Apache server-status: {{RHOST}} matched'
+    capture:
+      to: loot/http-server-status.txt
+      value: '{{RHOST}}:{{RPORT}}'

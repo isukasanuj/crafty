@@ -1,0 +1,39 @@
+# git daemon upload-pack
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: pkt-line git-upload-pack request for repo '/test' (length prefix precomputed). Change the repo and the 4-hex length together.
+# AUTHORIZED TESTING ONLY.
+id: probe-git-daemon
+info:
+  name: git daemon upload-pack
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - git
+  description: 'Send-then-read probe: git daemon upload-pack.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|9418}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: 001agit-upload-pack /test\x00
+  recv:
+    read: 2048
+  matchers:
+  - type: word
+    part: data
+    words:
+    - version
+    - ERR
+    - ng
+    - ACK
+  on_match:
+    log: 'git daemon upload-pack: match'
+    capture:
+      to: loot/probe-git-daemon.txt
+      part: data

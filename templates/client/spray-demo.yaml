@@ -1,0 +1,41 @@
+id: spray-demo
+info:
+  name: Bounded credential spray (demo)
+  author: crafty
+  severity: medium
+  tags: [client, tcp, spray, tempo, demo]
+  description: >
+    Demonstrates `loop: over` with a hard `max`, plus the tempo knobs (rate +
+    jitter) that match an engagement's noise budget. This is a generic line
+    protocol stand-in - adapt the send/matcher to the real service. Authorized
+    testing only.
+
+transport: tcp
+role: client
+target: "{{RHOST}}:{{RPORT}}"
+
+defaults:
+  PASSWORD: "Password1"
+
+tempo:
+  rate: "5/s"
+  jitter: "0-200ms"
+  concurrency: 1
+
+flow:
+  - loop:
+      over: "{{USERS}}"          # a wordlist file path, or an inline list
+      as: user
+      max: 500                   # bounded by default - never unbounded
+      do:
+        - send:
+            bytes: "LOGIN {{user}}:{{PASSWORD}}\r\n"
+          recv:
+            type: delimiter
+            delimiter: "\r\n"
+          matchers:
+            - { type: word, part: data, words: ["OK", "Welcome", "+OK"] }
+          on_match:
+            log: "valid credential: {{user}}"
+            extract: { valid_user: "{{user}}" }
+            capture: { to: "loot/spray-hits.txt", value: "{{user}}:{{PASSWORD}}" }

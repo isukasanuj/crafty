@@ -1,0 +1,30 @@
+# Rogue UDP catch-all
+# Tier: T1
+# Note: Set LPORT. Observes and logs UDP datagrams; never responds.
+# AUTHORIZED TESTING ONLY.
+id: rogue-udp-catch
+info:
+  name: Rogue UDP catch-all
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - udp
+  - catch
+  - honeypot
+  description: Rogue UDP catch-all.
+transport: udp
+role: listener
+mode: analyze
+socket:
+  bind: 0.0.0.0:{{LPORT|0}}
+  options:
+  - SO_REUSEADDR
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/rogue-udp-catch.txt
+    value: '{{peer}} -> {{query}}'

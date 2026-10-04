@@ -1,0 +1,41 @@
+# Open proxy check
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: Open-proxy detection depends on the target honoring absolute-URI GET.
+# AUTHORIZED TESTING ONLY.
+id: http-proxy-detect
+info:
+  name: Open proxy check
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - proxy
+  description: 'HTTP probe: Open proxy check (GET http://example.com/).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|8080}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET http://example.com/ HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection:
+      close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - HTTP/
+    - Example Domain
+  on_match:
+    log: 'Open proxy check: {{RHOST}} matched'
+    capture:
+      to: loot/http-proxy-detect.txt
+      value: '{{RHOST}}:{{RPORT}}'

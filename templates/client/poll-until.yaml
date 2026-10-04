@@ -1,0 +1,32 @@
+id: poll-until
+info:
+  name: Poll until ready (bounded retry)
+  author: crafty
+  severity: info
+  tags: [client, tcp, control-flow, demo]
+  description: >
+    Demonstrates `loop: until` with a hard `max` and a `delay` - poll a service
+    until it reports ready, giving up after a bounded number of attempts. No
+    unbounded while loops exist in the grammar.
+
+transport: tcp
+role: client
+target: "{{RHOST}}:{{RPORT}}"
+socket:
+  timeout: 3s
+
+flow:
+  - loop:
+      until: { matcher: success }   # stop as soon as the step below matches
+      max: 10                        # ... but never more than 10 attempts
+      delay: 2s
+      do:
+        - send:
+            bytes: "STATUS\r\n"
+          recv:
+            type: delimiter
+            delimiter: "\r\n"
+          matchers:
+            - { type: word, part: data, words: ["READY", "200"] }
+          on_match:
+            log: "service reported ready"

@@ -1,0 +1,32 @@
+# HTTP honeypot
+# Tier: T1
+# Note: Prompts for Basic auth and logs the connection.
+# AUTHORIZED TESTING ONLY.
+id: honeypot-http
+info:
+  name: HTTP honeypot
+  author: crafty
+  severity: high
+  tags:
+  - listener
+  - tcp
+  - honeypot
+  - web
+  description: HTTP honeypot.
+transport: tcp
+role: listener
+mode: active
+socket:
+  bind: 0.0.0.0:{{LPORT|80}}
+  options:
+  - SO_REUSEADDR
+on_receive:
+  extract:
+  - name: query
+    type: dsl
+    expression: str(data)
+  capture:
+    to: loot/honeypot-http.txt
+    value: '{{peer}} -> {{query}}'
+  respond:
+    bytes: 'HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm="x"\r\nContent-Length: 0\r\n\r\n'

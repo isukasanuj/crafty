@@ -1,0 +1,37 @@
+# HTTP HEAD
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-head
+info:
+  name: HTTP HEAD
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  description: 'HTTP probe: HTTP HEAD (HEAD /).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|80}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'HEAD / HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - HTTP/
+  on_match:
+    log: 'HTTP HEAD: {{RHOST}} matched'
+    capture:
+      to: loot/http-head.txt
+      value: '{{RHOST}}:{{RPORT}}'

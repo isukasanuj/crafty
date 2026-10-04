@@ -1,0 +1,38 @@
+# RabbitMQ mgmt
+# Tier: T1
+# AUTHORIZED TESTING ONLY.
+id: http-rabbitmq
+info:
+  name: RabbitMQ mgmt
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - http
+  - web
+  - mq
+  description: 'HTTP probe: RabbitMQ mgmt (GET /).'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|15672}}'
+socket:
+  timeout: 6s
+tempo:
+  preflight: true
+  rate: 20/s
+flow:
+- send:
+    bytes: 'GET / HTTP/1.1\r\nHost: {{RHOST}}\r\nUser-Agent: crafty\r\nAccept: */*\r\nConnection: close\r\n\r\n'
+  recv:
+    read: 8192
+  matchers:
+  - type: word
+    part: data
+    words:
+    - RabbitMQ
+  on_match:
+    log: 'RabbitMQ mgmt: {{RHOST}} matched'
+    capture:
+      to: loot/http-rabbitmq.txt
+      value: '{{RHOST}}:{{RPORT}}'

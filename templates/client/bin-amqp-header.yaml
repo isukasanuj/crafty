@@ -1,0 +1,38 @@
+# AMQP protocol header
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# AUTHORIZED TESTING ONLY.
+id: bin-amqp-header
+info:
+  name: AMQP protocol header
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - amqp
+  - mq
+  description: 'TCP binary probe: AMQP protocol header.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|5672}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{= concat(b''AMQP'', hex2b(''00000901''))}}'
+  recv:
+    read: 1024
+  matchers:
+  - type: word
+    part: data
+    words:
+    - AMQP
+    - connection
+  on_match:
+    log: 'AMQP protocol header: response from {{RHOST}}'
+    capture:
+      to: loot/bin-amqp-header.txt
+      part: data

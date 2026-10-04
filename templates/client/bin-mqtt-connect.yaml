@@ -1,0 +1,37 @@
+# MQTT CONNECT
+# Tier: T2  (T2 = constructed from protocol spec; validate against a live service)
+# Note: MQTT 3.1.1 CONNECT with client id 'crfty'; expects CONNACK (0x20).
+# AUTHORIZED TESTING ONLY.
+id: bin-mqtt-connect
+info:
+  name: MQTT CONNECT
+  author: crafty
+  severity: info
+  tags:
+  - client
+  - tcp
+  - binary
+  - mqtt
+  - iot
+  description: 'TCP binary probe: MQTT CONNECT.'
+transport: tcp
+role: client
+target: '{{RHOST}}:{{RPORT|1883}}'
+socket:
+  timeout: 5s
+tempo:
+  preflight: true
+flow:
+- send:
+    bytes: '{{hex:101000044d5154540402003c00046372667479}}'
+  recv:
+    read: 64
+  matchers:
+  - type: binary
+    part: data
+    value: '20'
+  on_match:
+    log: 'MQTT CONNECT: response from {{RHOST}}'
+    capture:
+      to: loot/bin-mqtt-connect.txt
+      part: data
